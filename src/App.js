@@ -6,7 +6,7 @@ function point(x, y) {
     return {x: x, y: y};
 }
 
-function drawList(list, tl, br, width, height) {
+function drawList(ctx, list, tl, br, width, height) {
     const subbed = sub(br, tl);
     for (let i = 1; i < list.length; i++) {
       const v1 =  sub(list[i-1], tl);
@@ -24,14 +24,15 @@ function drawList(list, tl, br, width, height) {
 }
 
 function getDir(angle, delta) {
-    return point(delta*math.cos(angle), delta*math.sin(angle));
+    return point(delta*Math.cos(angle), delta*Math.sin(angle));
+}
 
 function next(points, step, n, dist) {
     const current = points[points.length -1];
     const prev = points[points.length -2];
     let max = -1;
     let maxPt = point(0,0);
-    for (let i = 0; i < n, i++) {
+    for (let i = 0; i < n; i++) {
         const pt = getStep(current, step, getDir(2*Math.PI*i/n, step), dist);
         const d = dist(pt, prev);
         if (d > max) {
@@ -44,6 +45,10 @@ function next(points, step, n, dist) {
 
 function eucNorm(pt) {
     return Math.sqrt(pt.x*pt.x + pt.y*pt.y);
+}
+
+function edist(x, y) {
+    return eucNorm(sub(x, y));
 }
 
 function scale(pt, s) {
@@ -60,7 +65,7 @@ function sub(a, b) {
 
 function getStep(p, delta, dir, dist) {
     const dirNorm = scale(dir, delta/dist(p, add(p, dir)));
-    const metricDist = dist(p, add(dirNorm));
+    const metricDist = dist(p, add(dirNorm, p));
     return add(p, scale(dirNorm, delta/metricDist));
 }
 
@@ -69,11 +74,12 @@ function App() {
   useEffect(() => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-      ctx.beginPath();
-      ctx.moveTo(0,0);
-      ctx.lineTo(200, 200);
-      ctx.stroke();
-      ctx.closePath();
+      const pts = [point(-.5, -.5), point(-.7, -.6)];
+      for (let i = 0; i < 1000; i++) {
+          pts.push(next(pts, .01, 16, edist));
+      }
+      console.log(pts);
+      drawList(ctx, pts, point(-1, -1), point(1, 1), 500, 500);
   });
   return (
     <div className="App">
